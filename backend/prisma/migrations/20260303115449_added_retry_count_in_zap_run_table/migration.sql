@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "ZapRun" ADD COLUMN     "retryCount" INTEGER NOT NULL DEFAULT 0;

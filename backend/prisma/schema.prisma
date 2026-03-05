@@ -1,0 +1,110 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")  
+}
+
+model User {  
+  id        String   @id @default(uuid())
+  email     String   @unique  
+  password  String
+  zaps      Zap[]
+  tokens    Tokens[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Tokens {
+  id          String @id @default(uuid())
+  userId      String
+  provider    String
+  accessToken String
+  user        User   @relation(fields: [userId], references: [id])
+}
+
+model Zap {
+  id      String   @id @default(uuid())
+  userId  String
+  trigger Trigger?
+  actions Action[]
+  zapRuns ZapRun[]
+  webhook Webhook?
+  user    User     @relation(fields: [userId], references: [id])
+}
+
+model Webhook {
+  id         String @id @default(uuid())
+  zapId      String @unique
+  webhookId  Int 
+  repository String
+  zap        Zap    @relation(fields: [zapId], references: [id])
+}
+
+model Trigger {
+  id                   String           @id @default(uuid())
+  zapId                String           @unique
+  eventName            String 
+  eventAction          String
+  conditions           Json?
+  availableTriggerName String
+  availableTrigger     AvailableTrigger @relation(fields: [availableTriggerName], references: [name])
+  zap                  Zap              @relation(fields: [zapId], references: [id])
+}
+
+model Action {
+  id                  String          @id @default(uuid())
+  zapId               String
+  availableActionName String
+  actionConfig        Json 
+  sortingOrder        Int             @default(0)
+  availableAction     AvailableAction @relation(fields: [availableActionName], references: [name])
+  zap                 Zap             @relation(fields: [zapId], references: [id])
+}
+
+model AvailableTrigger {
+  id       String    @default(uuid())
+  app      String
+  name     String    @id
+  // image    String
+  triggers Trigger[]
+}
+
+model AvailableAction {
+  id      String   @default(uuid())
+  app     String
+  name    String   @id
+  // image   String
+  actions Action[]
+}
+
+model ZapRun {
+  id           String        @id @default(uuid())
+  zapId        String
+  status       String
+  retryCount   Int     @default(0)
+  errorMessage String?
+  metadata     Json?
+  executedAt   DateTime @default(now())
+  zap          Zap           @relation(fields: [zapId], references: [id])
+  zapRunOutbox ZapRunOutbox?
+}
+
+model WebhookDelivery {
+  id         String   @id  
+  receivedAt DateTime @default(now())
+}
+
+model ZapRunOutbox {
+  id       String @id @default(uuid())
+  zapRunId String @unique
+  zapRun   ZapRun @relation(fields: [zapRunId], references: [id])
+}

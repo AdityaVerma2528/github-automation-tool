@@ -1,0 +1,1 @@
+{"root":["./src/index.ts","./src/prisma.ts","./src/seed.ts","./src/middleware/authMiddleware.ts","./src/routes/auth.ts","./src/utils/getUserRepos.ts","./src/utils/isTokenValid.ts"],"version":"5.9.2"}
